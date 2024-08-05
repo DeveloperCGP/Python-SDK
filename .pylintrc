@@ -1,0 +1,8 @@
+[MASTER]
+max-line-length=120
+disable=
+    E0401,
+    E0611,
+    C0103, # variable names not in snake_case
+    C0116, # Function or Method Docstring
+    C0114, # missing-module-docstring

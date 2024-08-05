@@ -1,0 +1,16 @@
+from enum import Enum
+
+
+class OperationTypes(Enum):
+    DEBIT = "DEBIT"
+    ACCOUNT_REGISTRATION = "ACCOUNT_REGISTRATION"
+    AUTH = "AUTH"
+    CAPTURE = "CAPTURE"
+    CONFIRM = "CONFIRM"
+    SETTLE = "SETTLE"
+    VOID = "VOID"
+    CANCEL = "CANCEL"
+    REFUND = "REFUND"
+    REBATE = "REBATE"
+    CREDIT = "CREDIT"
+    CANCEL_WITHDRAWAL = "CANCEL_WITHDRAWAL"

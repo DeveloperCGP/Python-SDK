@@ -1,0 +1,17 @@
+import os
+
+merchant_pass = os.getenv("MERCHANT_PASS", "")
+merchant_key = os.getenv("MERCHANT_KEY", "")
+merchant_id = os.getenv("MERCHANT_ID", "")
+environment = os.getenv("ENVIRONMENT", "")
+product_id = os.getenv("PRODUCT_ID", "")
+product_id_accommodation = os.getenv("PRODUCT_ID_ACCOMMODATION", "")
+product_id_item = os.getenv("PRODUCT_ID_ITEM", "")
+product_id_service = os.getenv("PRODUCT_ID_SERVICE", "")
+product_id_flight = os.getenv("PRODUCT_ID_FLIGHT", "")
+status_url = os.getenv("STATUS_URL", "")
+success_url = os.getenv("SUCCESS_URL", "")
+cancel_url = os.getenv("CANCEL_URL", "")
+awaiting_url = os.getenv("AWAITING_URL", "")
+error_url = os.getenv("ERROR_URL", "")
+api_version = os.getenv("API_VERSION", 5)
