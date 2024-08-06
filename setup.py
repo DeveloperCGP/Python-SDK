@@ -1,25 +1,31 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1'
-DESCRIPTION = 'Python Payment SDK'
-LONG_DESCRIPTION = 'EPG PaymentSDK is a combination of payment models and helpers'
+# read the contents of your README file
+from pathlib import Path
+this_directory = Path(__file__).parent
+readme_description = (this_directory / "README.md").read_text()
+
+
+VERSION = '1.0.3'
+DESCRIPTION = 'Comercia Global Payments - Python SDK'
 
 # Setting up
 setup(
     # the name must match the folder name 'verysimplemodule'
-    name="payment-sdk",
+    name="cgp-payment-sdk",
     version=VERSION,
-    author="CGP",
+    author="Comercia Global Payments",
     description=DESCRIPTION,
-    long_description=LONG_DESCRIPTION,
+    long_description=readme_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(exclude=["sdk.tests", "sdk.tests.*", "sdk/tests", "sdk/tests/*"]),
     classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Education",
-        "Programming Language :: Python :: 2",
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Financial and Insurance Industry",
         "Programming Language :: Python :: 3",
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: Microsoft :: Windows",
+        "Operating System :: OS Independent",
+        'License :: OSI Approved :: MIT License',
     ],
     install_requires=[
         "dataclasses-json==0.6.7",
