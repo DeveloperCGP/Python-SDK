@@ -1,6 +1,5 @@
 import json
 import xml.etree.ElementTree as ElementTree
-
 from sdk.models.responses.notification import *
 
 
@@ -42,6 +41,7 @@ def __xml_to_dataclass(element):
             status=__get_text(element, "status"),
             operations=[__xml_to_dataclass(op) for op in element.find("operations")],
             workFlowResponse=__xml_to_dataclass(element.find("workFlowResponse")),
+            optionalTransactionParams=__xml_to_dataclass(element.find("optionalTransactionParams")),
         )
     elif element.tag == "operation":
         return Operation(
@@ -67,6 +67,7 @@ def __xml_to_dataclass(element):
             radMessage=__get_text(element, "radMessage"),
             redirectionResponse=__get_text(element, "redirectionResponse"),
             subscriptionPlan=__get_text(element, "subscriptionPlan"),
+            optionalTransactionParams=__xml_to_dataclass(element.find("optionalTransactionParams")),
         )
     elif element.tag == "respCode":
         return ResponseCode(
@@ -89,12 +90,17 @@ def __xml_to_dataclass(element):
     elif element.tag == "extraDetails":
         xml_dict = xml_to_dict(element)
         return ExtraDetails(
-            nemuruTxnId=get_extra_details_items(xml_dict, "nemuruTxnId"),
-            nemuruCartHash=get_extra_details_items(xml_dict, "nemuruCartHash"),
-            nemuruAuthToken=get_extra_details_items(xml_dict, "nemuruAuthToken"),
-            nemuruDisableFormEdition=get_extra_details_items(xml_dict, "nemuruDisableFormEdition"),
-            status=get_extra_details_items(xml_dict, "status"),
-            disableFormEdition=get_extra_details_items(xml_dict, "disableFormEdition"),
+            entry=[__xml_to_dataclass(entry) for entry in element],
+        ) if xml_dict is not None else ExtraDetails()
+    elif element.tag == "optionalTransactionParams":
+        xml_dict = xml_to_dict(element)
+        return OptionalTransactionParams(
+            entry=[__xml_to_dataclass(entry) for entry in element],
+        ) if xml_dict is not None else OptionalTransactionParams()
+    elif element.tag == "entry":
+        xml_dict = xml_to_dict(element)
+        return Entry(
+            key=xml_dict["key"], value=xml_dict["value"]
         )
     elif element.tag == "mpi":
         return Mpi(
