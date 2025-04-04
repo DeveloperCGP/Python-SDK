@@ -6,7 +6,7 @@ this_directory = Path(__file__).parent
 readme_description = (this_directory / "README.md").read_text()
 
 
-VERSION = '1.0.3'
+VERSION = '01.00.01'
 DESCRIPTION = 'Comercia Global Payments - Python SDK'
 
 # Setting up
