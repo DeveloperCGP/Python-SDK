@@ -8,6 +8,14 @@ class TransactionResult(Enum):
     ERROR = "ERROR"
     FAIL = "FAIL"
 
+    @staticmethod
+    def get_by_status(value: str):
+        for member in TransactionResult:
+            if member.value == value:
+                return member
+        return None
+
+
 
 class TransactionType(Enum):
     MOTO = "MOTO"

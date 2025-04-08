@@ -1,12 +1,33 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
-
 from dataclasses_json import dataclass_json, config, Undefined
-
 from sdk.enums.currency import Currency
 from sdk.enums.operation_types import OperationTypes
 from sdk.enums.payment_solutions import PaymentSolutions
 from sdk.enums.transaction import TransactionResult
+
+
+class ParsingUtils:
+
+    @staticmethod
+    def parse_json_to_entries(data: dict):
+        """Custom parser to convert flat JSON dict into a list of Entry objects"""
+        entries = []
+        if data:
+            for k, v in data.items():
+                entries.append(Entry(key=k, value=v))
+        return entries
+
+    @staticmethod
+    def parse_extra_details(data: dict) -> 'ExtraDetails':
+        entries = ParsingUtils.parse_json_to_entries(data)
+        return ExtraDetails(entry=entries)
+
+
+    @staticmethod
+    def parse_optional_trx_params(data: dict) -> 'OptionalTransactionParams':
+        entries = ParsingUtils.parse_json_to_entries(data)
+        return OptionalTransactionParams(entry=entries)
 
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
@@ -33,13 +54,21 @@ class Mpi:
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
+class Entry:
+    key: Optional[str] = None
+    value: Optional[str] = None
+
+
+@dataclass_json(undefined=Undefined.EXCLUDE)
+@dataclass
 class ExtraDetails:
-    nemuruTxnId: Optional[str] = None
-    nemuruCartHash: Optional[str] = None
-    nemuruAuthToken: Optional[str] = None
-    nemuruDisableFormEdition: Optional[str] = None
-    status: Optional[str] = None
-    disableFormEdition: Optional[str] = None
+    entry: Optional[List[Entry]] = None
+
+
+@dataclass_json(undefined=Undefined.EXCLUDE)
+@dataclass
+class OptionalTransactionParams:
+    entry: Optional[List[Entry]] = None
 
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
@@ -53,14 +82,9 @@ class PaymentDetails:
     expDate: Optional[str] = None
     issuerBank: Optional[str] = None
     issuerCountry: Optional[str] = None
-    extraDetails: Optional[ExtraDetails] = None
-
-
-@dataclass_json(undefined=Undefined.EXCLUDE)
-@dataclass
-class Entry:
-    key: Optional[str] = None
-    value: Optional[str] = None
+    extraDetails: Optional[ExtraDetails] = field(
+        default=None, metadata=config(decoder=ParsingUtils.parse_extra_details)
+    )
 
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
@@ -96,6 +120,9 @@ class Operation:
     radMessage: Optional[str] = None
     redirectionResponse: Optional[str] = None
     subscriptionPlan: Optional[str] = None
+    optionalTransactionParams: Optional[OptionalTransactionParams] = field(
+        default=None, metadata=config(decoder=ParsingUtils.parse_optional_trx_params)
+    )
 
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
@@ -105,6 +132,9 @@ class Notification:
     status: Optional[str] = None
     operations: Optional[List[Operation]] = field(default=None, metadata=config(field_name="operationsArray"))
     workFlowResponse: Optional[WorkFlowResponse] = None
+    optionalTransactionParams: Optional[OptionalTransactionParams] = field(
+        default=None, metadata=config(decoder=ParsingUtils.parse_optional_trx_params)
+    )
 
     def is_last_notification(self) -> bool:
         if self.operations is None:
@@ -120,23 +150,34 @@ class Notification:
             return redirection_url.replace("redirect:", "")
         return None
 
-    def get_nemuru_cart_hash(self) -> Optional[str]:
-        if self.operations is None:
+    def get_entry(self, entry_key: str):
+        if (self.operations is None or self.operations[0].paymentDetails is None
+                or self.operations[0].paymentDetails.extraDetails is None
+                or self.operations[0].paymentDetails.extraDetails.entry is None):
             return None
-        if self.operations is not None and self.operations[0].paymentDetails is not None \
-                and self.operations[0].paymentDetails.extraDetails is not None:
-            return self.operations[0].paymentDetails.extraDetails.nemuruCartHash
         else:
-            return None
+            entries = self.operations[0].paymentDetails.extraDetails.entry
+            search_string = entry_key.lower()
+            result = next((entry for entry in entries if entry.key.lower() == search_string), None)
+            return result.value if result is not None else None
+
+    def get_nemuru_txn_id(self) -> Optional[str]:
+        return self.get_entry("nemuruTxnId")
+
+    def get_nemuru_cart_hash(self) -> Optional[str]:
+        return self.get_entry("nemuruCartHash")
 
     def get_nemuru_auth_token(self) -> Optional[str]:
-        if self.operations is None:
-            return None
-        if self.operations is not None and self.operations[0].paymentDetails is not None \
-                and self.operations[0].paymentDetails.extraDetails is not None:
-            return self.operations[0].paymentDetails.extraDetails.nemuruAuthToken
-        else:
-            return None
+        return self.get_entry("nemuruAuthToken")
+
+    def get_nemuru_disable_form_edition(self) -> Optional[str]:
+        return self.get_entry("nemuruDisableFormEdition")
+
+    def get_status(self) -> Optional[str]:
+        return self.get_entry("status")
+
+    def get_disable_form_edition(self) -> Optional[str]:
+        return self.get_entry("disableFormEdition")
 
     def get_merchant_transaction_id(self) -> Optional[str]:
         if self.operations is None:
@@ -147,7 +188,7 @@ class Notification:
         if self.operations is None:
             return None
         try:
-            return TransactionResult[self.operations[-1].status.upper()]
+            return TransactionResult.get_by_status(self.operations[-1].status.upper())
         except KeyError:
             return None
 
